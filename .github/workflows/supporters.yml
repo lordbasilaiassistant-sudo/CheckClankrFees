@@ -2,8 +2,10 @@
 # Also re-injects the top-10 block between the SUPPORTERS:START / END
 # markers in README.md. If anything changed, opens an auto-commit.
 #
-# ETHERSCAN_API_KEY is optional. Without it we hit the unauthenticated
-# Etherscan v2 endpoint which works for low-volume reads but is rate-limited.
+# Uses our own RPC aggregator pool (free Base endpoints) — no Etherscan,
+# no external explorer APIs, no API keys. State is persisted to
+# scripts/.supporters-state.json so each cron run resumes from where the
+# previous one stopped.
 
 name: Update supporters
 
@@ -23,15 +25,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+      - name: Install deps
+        run: npm ci
       - name: Generate SUPPORTERS.md
-        env:
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
         run: node scripts/update-supporters.mjs
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add SUPPORTERS.md README.md
+          git add SUPPORTERS.md README.md scripts/.supporters-state.json
           if git diff --cached --quiet; then
             echo "No changes."
           else

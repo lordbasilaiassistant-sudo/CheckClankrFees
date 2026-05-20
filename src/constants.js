@@ -18,9 +18,14 @@ export const DEFAULT_SCAN_CHUNK = 9_999n;
 /** Default parallel chunks during scan. Above 5 starts hitting rate limits. */
 export const DEFAULT_SCAN_CONCURRENCY = 5;
 
-/** Default getLogs quorum factor. 1 = single-source (fast, vulnerable to a
- *  lying RPC); 2 = two-of-N agreement (safer, slower). */
-export const DEFAULT_LOGS_QUORUM = 2;
+/** Default getLogs quorum factor. 1 = single-source (fast); 2+ = k-of-N
+ *  agreement. NOTE: currently defaults to 1. The 2026-05-20 quorum impl
+ *  uses strict JSON.stringify equality which is too brittle — different
+ *  RPCs return the same events with subtle metadata differences (gas,
+ *  ordering, etc.) so quorum sees "disagreement" and may return 0 events.
+ *  Re-raise to 2 once `withQuorum`/`sameJson` is rewritten to compare by
+ *  set-of-(txHash, logIndex) with UNION merge. Tracked in scan.js comments. */
+export const DEFAULT_LOGS_QUORUM = 1;
 
 /** Base chain id, hardcoded — this app is Base-only by design. */
 export const BASE_CHAIN_ID = 8453;

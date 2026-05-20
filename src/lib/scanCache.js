@@ -16,9 +16,14 @@
 
 import { log } from './debug.js';
 
-// v2: keys are now plugin × chain × address (was: only address). The old
-// v1 entries auto-invalidate because the version mismatch.
-export const CACHE_VERSION = 2;
+// v3: a brittle JSON-equality comparator in withQuorum was causing
+// getLogs results to be silently dropped, producing empty caches on v2
+// for users that actually had launches. Forcing a re-scan with quorum
+// disabled (DEFAULT_LOGS_QUORUM=1) restores correct results.
+//
+// v2: keys are now plugin × chain × address (was: only address).
+// v1: legacy per-address cache from before the plugin refactor.
+export const CACHE_VERSION = 3;
 const PREFIX = 'ccf:scan:v';
 const ENABLED = typeof window !== 'undefined' && !!window.localStorage;
 // Drop caches older than this — self-heal in case a future version forgets

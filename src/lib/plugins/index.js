@@ -7,8 +7,9 @@
 
 import clanker from './clanker/index.js';
 import doppler from './doppler/index.js';
+import customErc20 from './custom-erc20/index.js';
 
-export const PLUGINS = [clanker, doppler];
+export const PLUGINS = [clanker, doppler, customErc20];
 
 export function pluginById(id) {
   return PLUGINS.find((p) => p.id === id);
