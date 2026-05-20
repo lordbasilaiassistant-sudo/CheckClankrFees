@@ -29,7 +29,7 @@ import { getAddress, parseAbi } from 'viem';
 import { log } from '../../debug.js';
 import { rpc, getBlockNumber, getLogs } from '../../rpc/index.js';
 import { readCache, writeCache } from '../../scanCache.js';
-import { DEFAULT_SCAN_CHUNK, DEFAULT_SCAN_CONCURRENCY } from '../../../constants.js';
+import { DEFAULT_SCAN_CHUNK, DEFAULT_SCAN_CONCURRENCY, DEFAULT_SCAN_LOOKBACK_BLOCKS } from '../../../constants.js';
 import { sanitizeText, safeAddress, HASH_RE_64 } from '../../clanker/sanitize.js';
 import { TRANSFER_EVENT, ZERO_ADDRESS } from './events.js';
 import { CUSTOM_ERC20, CUSTOM_TOKEN_LINK, DEPLOY_MINT_THRESHOLD_BPS } from './constants.js';
@@ -125,13 +125,19 @@ export async function scanLaunches(address, { signal, onProgress, onCached, useC
   if (cached) onCached?.(cachedLaunches);
 
   const floor = envBig('VITE_SCAN_FROM_BLOCK', cfg.scanFloorBlock);
-  const fromStart = cached?.scannedToBlock != null && cached.scannedToBlock >= floor
-    ? cached.scannedToBlock + 1n
-    : floor;
+  const lookbackBlocks = envBig('VITE_SCAN_LOOKBACK_BLOCKS', DEFAULT_SCAN_LOOKBACK_BLOCKS);
   const chunkSize = envBig('VITE_SCAN_CHUNK', DEFAULT_SCAN_CHUNK);
 
-  const endDone = log.time('custom-erc20', 'scanLaunches', { address: userAddr, fromStart: fromStart.toString(), cached: cachedLaunches.length });
+  const endDone = log.time('custom-erc20', 'scanLaunches', { address: userAddr, cached: cachedLaunches.length });
   const head = await getBlockNumber();
+
+  const lookbackFloor = lookbackBlocks > 0n && head > lookbackBlocks
+    ? head - lookbackBlocks
+    : floor;
+  const effectiveFloor = lookbackFloor > floor ? lookbackFloor : floor;
+  const fromStart = cached?.scannedToBlock != null && cached.scannedToBlock >= effectiveFloor
+    ? cached.scannedToBlock + 1n
+    : effectiveFloor;
   if (fromStart > head) {
     endDone({ launches: cachedLaunches.length, cacheHit: true });
     return cachedLaunches;
@@ -142,6 +148,8 @@ export async function scanLaunches(address, { signal, onProgress, onCached, useC
     const toBlock = (cursor + chunkSize) > head ? head : (cursor + chunkSize);
     ranges.push({ from: cursor, to: toBlock });
   }
+  // Newest blocks first — see clanker/discovery.js for rationale.
+  ranges.reverse();
   const totalRanges = ranges.length;
   const limit = Math.min(
     concurrency ?? Number(import.meta.env?.VITE_SCAN_CONCURRENCY ?? DEFAULT_SCAN_CONCURRENCY),

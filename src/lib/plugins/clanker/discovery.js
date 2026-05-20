@@ -12,7 +12,7 @@ import { getAddress } from 'viem';
 import { log } from '../../debug.js';
 import { rpc, getBlockNumber, getLogs } from '../../rpc/index.js';
 import { readCache, writeCache } from '../../scanCache.js';
-import { DEFAULT_SCAN_CHUNK, DEFAULT_SCAN_CONCURRENCY } from '../../../constants.js';
+import { DEFAULT_SCAN_CHUNK, DEFAULT_SCAN_CONCURRENCY, DEFAULT_SCAN_LOOKBACK_BLOCKS } from '../../../constants.js';
 import { sanitizeText, safeAddress, HASH_RE_64 } from '../../clanker/sanitize.js';
 import { TOKEN_CREATED_EVENT } from './events.js';
 import { CLANKER_V4, CLANKER_LINK } from './constants.js';
@@ -102,13 +102,23 @@ export async function scanLaunches(address, { signal, onProgress, onCached, useC
   if (cached) onCached?.(cachedLaunches);
 
   const factoryFloor = envBig('VITE_SCAN_FROM_BLOCK', cfg.factoryDeployBlock);
-  const fromStart = cached?.scannedToBlock != null && cached.scannedToBlock >= factoryFloor
-    ? cached.scannedToBlock + 1n
-    : factoryFloor;
+  const lookbackBlocks = envBig('VITE_SCAN_LOOKBACK_BLOCKS', DEFAULT_SCAN_LOOKBACK_BLOCKS);
   const chunkSize = envBig('VITE_SCAN_CHUNK', DEFAULT_SCAN_CHUNK);
 
-  const endDone = log.time('clanker', 'scanLaunches', { address: userAddr, fromStart: fromStart.toString(), cached: cachedLaunches.length });
+  const endDone = log.time('clanker', 'scanLaunches', { address: userAddr, cached: cachedLaunches.length });
   const head = await getBlockNumber();
+
+  // Pick the start block: resume past cache if present, else apply the
+  // lookback window (default ~30 days). Lookback can be disabled by
+  // setting VITE_SCAN_LOOKBACK_BLOCKS=0, in which case we walk from the
+  // factory deploy block.
+  const lookbackFloor = lookbackBlocks > 0n && head > lookbackBlocks
+    ? head - lookbackBlocks
+    : factoryFloor;
+  const effectiveFloor = lookbackFloor > factoryFloor ? lookbackFloor : factoryFloor;
+  const fromStart = cached?.scannedToBlock != null && cached.scannedToBlock >= effectiveFloor
+    ? cached.scannedToBlock + 1n
+    : effectiveFloor;
   if (fromStart > head) {
     endDone({ launches: cachedLaunches.length, cacheHit: true });
     return cachedLaunches;
@@ -124,6 +134,10 @@ export async function scanLaunches(address, { signal, onProgress, onCached, useC
     const toBlock = (cursor + chunkSize) > head ? head : (cursor + chunkSize);
     ranges.push({ from: cursor, to: toBlock });
   }
+  // Reverse: scan head→floor so the user sees newest deploys first. Tokens
+  // most likely to have unclaimed fees are recent ones; populating those in
+  // the first few seconds gives immediate value while older history fills in.
+  ranges.reverse();
   const totalRanges = ranges.length;
   const limit = Math.min(
     concurrency ?? Number(import.meta.env?.VITE_SCAN_CONCURRENCY ?? DEFAULT_SCAN_CONCURRENCY),

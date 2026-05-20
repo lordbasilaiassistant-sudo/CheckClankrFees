@@ -16,14 +16,15 @@
 
 import { log } from './debug.js';
 
-// v3: a brittle JSON-equality comparator in withQuorum was causing
-// getLogs results to be silently dropped, producing empty caches on v2
-// for users that actually had launches. Forcing a re-scan with quorum
-// disabled (DEFAULT_LOGS_QUORUM=1) restores correct results.
-//
+// v4: scan now defaults to a 30-day look-back window (DEFAULT_SCAN_LOOKBACK_BLOCKS
+//     in constants.js) instead of walking from each protocol's deploy block.
+//     `scannedToBlock` in old v3 caches assumes the older floor — invalidate
+//     so the next scan applies the new floor cleanly.
+// v3: brittle JSON-equality quorum dropped getLogs results, producing empty
+//     v2 caches for users that actually had launches.
 // v2: keys are now plugin × chain × address (was: only address).
 // v1: legacy per-address cache from before the plugin refactor.
-export const CACHE_VERSION = 3;
+export const CACHE_VERSION = 4;
 const PREFIX = 'ccf:scan:v';
 const ENABLED = typeof window !== 'undefined' && !!window.localStorage;
 // Drop caches older than this — self-heal in case a future version forgets

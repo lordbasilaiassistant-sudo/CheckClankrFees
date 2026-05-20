@@ -15,8 +15,20 @@ export const FACTORY_DEPLOY_BLOCK = 31_526_699n;
 /** Default per-chunk block range for getLogs. Public Base RPCs cap at ~10k. */
 export const DEFAULT_SCAN_CHUNK = 9_999n;
 
-/** Default parallel chunks during scan. Above 5 starts hitting rate limits. */
-export const DEFAULT_SCAN_CONCURRENCY = 5;
+/** Default parallel chunks during scan. Aggregator distributes load across
+ *  the 11 endpoints — 10 still leaves headroom for the typical 5-7 healthy
+ *  ones, and the per-endpoint inFlight ordering keeps any one of them from
+ *  getting hammered. */
+export const DEFAULT_SCAN_CONCURRENCY = 10;
+
+/** Default look-back window: scan the most recent N blocks instead of all
+ *  factory history. Base is ~2s/block → 1,296,000 blocks/30d. We default
+ *  to ~30 days = 4M blocks rounded so the first scan finishes in ~1 min
+ *  rather than ~15 min. Users that want full history can:
+ *    - override VITE_SCAN_LOOKBACK_BLOCKS=0 to disable the window, OR
+ *    - override VITE_SCAN_FROM_BLOCK=<n> to pin a specific floor.
+ *  A future "scan deeper history" button can extend this window per-plugin. */
+export const DEFAULT_SCAN_LOOKBACK_BLOCKS = 4_000_000n;
 
 /** Default getLogs quorum factor. 1 = single-source (fast); 2+ = k-of-N
  *  agreement. NOTE: currently defaults to 1. The 2026-05-20 quorum impl
