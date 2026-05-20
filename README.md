@@ -1,5 +1,7 @@
 # Check Clankr Fees
 
+**Live:** <https://lordbasilaiassistant-sudo.github.io/CheckClankrFees/>
+
 A free, open-source tool that connects your wallet, finds every Clanker v4 token you ever deployed on Base, and tells you how much fee revenue is sitting in the locker waiting for you to claim — all on one page.
 
 If you've ever deployed Clanker tokens and wondered "wait, do any of these have fees I forgot about?", this is for you.
@@ -38,6 +40,16 @@ npm run preview
 ```
 
 The `dist/` output is a plain static bundle — host it anywhere (GitHub Pages, Cloudflare Pages, Netlify, your own nginx).
+
+### Deploying to GitHub Pages
+
+This repo ships with `.github/workflows/pages.yml` — every push to `main` builds the bundle with the `/CheckClankrFees/` subpath baked in and publishes to GitHub Pages.
+
+To use it on your fork:
+
+1. In repo Settings → Pages, set **Source** to "GitHub Actions".
+2. (Optional, recommended) In Settings → Secrets and variables → Actions, add a repo secret `VITE_WALLETCONNECT_PROJECT_ID` with your free Reown project ID. Without it, browser-extension wallets still work but mobile QR pairing won't.
+3. Push to `main`. The workflow runs; first successful deploy goes live at `https://<your-username>.github.io/CheckClankrFees/`.
 
 ## Configuration
 
