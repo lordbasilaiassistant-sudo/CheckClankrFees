@@ -2,40 +2,47 @@ import React from 'react';
 import ClaimCell from './ClaimCell.jsx';
 import { safeImageUrl } from '../lib/clanker/images.js';
 
-// One token's row. Pure presentational. ClaimCell encapsulates the wallet
-// signing flow so this stays render-only.
+// One launch's row. Links come from the plugin (each plugin contributes
+// its own pill — clanker.world for Clanker, doppler.lol for Doppler, etc.).
 
-export default function TokenRow({ token, reward, feeOwner, onClaimed }) {
-  const imgSrc = safeImageUrl(token.image);
+export default function TokenRow({ launch, reward, feeOwner, onClaimed }) {
+  const imgSrc = safeImageUrl(launch.image);
   return (
     <tr>
       <td>
         {imgSrc
-          ? <img
-              className="tok-img" src={imgSrc} alt=""
+          ? <img className="tok-img" src={imgSrc} alt=""
               referrerPolicy="no-referrer" loading="lazy"
-              crossOrigin="anonymous" decoding="async"
-            />
+              crossOrigin="anonymous" decoding="async" />
           : <span className="tok-img placeholder" />}
       </td>
       <td>
-        <div className="tok-name">{token.name || '—'}</div>
-        <div className="dim small">{token.symbol || ''} · <span className="mono">{shortAddr(token.token)}</span></div>
+        <div className="tok-name">{launch.name || '—'}</div>
+        <div className="dim small">
+          <span className={`plugin-tag plugin-${launch.pluginId}`}>{launch.pluginId}</span>
+          {' · '}{launch.symbol || ''}
+          {' · '}<span className="mono">{shortAddr(launch.token)}</span>
+        </div>
       </td>
       <td>
         <ClaimCell
+          launch={launch}
           feeOwner={feeOwner}
-          token={token.token}
           reward={reward}
           onClaimed={onClaimed}
         />
       </td>
       <td>
-        <a className="link-pill clanker" href={`https://clanker.world/clanker/${token.token}`} target="_blank" rel="noreferrer" title="View on clanker.world">clanker</a>{' '}
-        <a className="link-pill scan" href={`https://basescan.org/address/${token.token}`} target="_blank" rel="noreferrer" title="View on Basescan">scan</a>{' '}
-        {token.txHash && (
-          <a className="link-pill tx" href={`https://basescan.org/tx/${token.txHash}`} target="_blank" rel="noreferrer" title={`Deployed at block ${token.blockNumber}`}>tx</a>
-        )}
+        {launch.links?.map((lnk) => (
+          <a
+            key={lnk.url}
+            className={`link-pill ${lnk.kind}`}
+            href={lnk.url}
+            target="_blank"
+            rel="noreferrer"
+            title={lnk.label}
+          >{lnk.label}</a>
+        ))}
       </td>
     </tr>
   );

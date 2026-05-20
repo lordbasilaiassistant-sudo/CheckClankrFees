@@ -16,7 +16,9 @@
 
 import { log } from './debug.js';
 
-export const CACHE_VERSION = 1;
+// v2: keys are now plugin × chain × address (was: only address). The old
+// v1 entries auto-invalidate because the version mismatch.
+export const CACHE_VERSION = 2;
 const PREFIX = 'ccf:scan:v';
 const ENABLED = typeof window !== 'undefined' && !!window.localStorage;
 // Drop caches older than this — self-heal in case a future version forgets
@@ -76,16 +78,22 @@ export function clearCache(address) {
   try { window.localStorage.removeItem(key(address)); } catch {}
 }
 
+// JSON can't hold BigInts. The plugin Launch shape carries
+// `deployedAt.blockNumber` as a BigInt — stringify on write, parse on read.
 function serializeToken(t) {
   return {
     ...t,
-    blockNumber: t.blockNumber == null ? null : t.blockNumber.toString(),
+    deployedAt: t.deployedAt
+      ? { ...t.deployedAt, blockNumber: t.deployedAt.blockNumber?.toString() ?? null }
+      : null,
   };
 }
 
 function rehydrateToken(t) {
   return {
     ...t,
-    blockNumber: t.blockNumber == null ? null : BigInt(t.blockNumber),
+    deployedAt: t.deployedAt
+      ? { ...t.deployedAt, blockNumber: t.deployedAt.blockNumber != null ? BigInt(t.deployedAt.blockNumber) : null }
+      : null,
   };
 }

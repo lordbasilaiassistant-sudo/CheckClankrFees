@@ -64,8 +64,48 @@ body {
 .empty p { color: var(--dim); max-width: 520px; margin: 8px auto; line-height: 1.5; font-size: 13px; }
 .empty code { font-family: var(--mono); background: var(--bg-2); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
 
-.list-hdr { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.list-hdr { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
 .list-hdr h2 { margin: 0; font-size: 18px; font-weight: 600; }
+
+.filter-strip {
+  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  padding: 8px 0 14px;
+}
+.chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  cursor: pointer;
+}
+.chip:hover { background: var(--bg-3); }
+.chip.active { background: var(--accent); color: #042; border-color: transparent; font-weight: 600; }
+.chip-count { opacity: 0.7; font-family: var(--mono); margin-left: 4px; font-size: 11px; }
+.hide-zero {
+  margin-left: auto;
+  font-size: 12px; color: var(--dim);
+  display: inline-flex; align-items: center; gap: 6px;
+  cursor: pointer;
+}
+.hide-zero input { cursor: pointer; }
+
+.plugin-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-3);
+  color: var(--fg);
+  text-transform: lowercase;
+}
+.plugin-tag.plugin-clanker { background: rgba(126, 231, 126, 0.18); color: var(--ok); }
+.plugin-tag.plugin-doppler { background: rgba(124, 213, 221, 0.18); color: var(--accent); }
+.chip.plugin-clanker:not(.active) { border-color: rgba(126, 231, 126, 0.4); }
+.chip.plugin-doppler:not(.active) { border-color: rgba(124, 213, 221, 0.4); }
+
+.btn.inline { display: inline; padding: 2px 8px; }
 
 .prog { display: flex; align-items: center; gap: 10px; min-width: 280px; }
 .prog-bar { width: 200px; height: 6px; background: var(--bg-3); border-radius: 99px; overflow: hidden; }

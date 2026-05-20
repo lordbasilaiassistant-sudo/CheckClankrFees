@@ -2,9 +2,11 @@
 
 **Live:** <https://lordbasilaiassistant-sudo.github.io/CheckClankrFees/>
 
-A free, open-source tool that connects your wallet, finds every Clanker v4 token you ever deployed on Base, and tells you how much fee revenue is sitting in the locker waiting for you to claim — all on one page.
+**Find the money you forgot about on Base.** Connect your wallet, scan every token launcher you've used, see every claimable fee balance waiting for you in one ranked list — and claim it.
 
-If you've ever deployed Clanker tokens and wondered "wait, do any of these have fees I forgot about?", this is for you.
+Each launcher is a small **plugin** in `src/lib/plugins/`. Today the registry ships with **Clanker v4** and **Doppler**; adding a new launcher is one folder. Toggle plugins with the chip strip at the top.
+
+If you've ever wondered "wait, do any of these things I deployed have fees I forgot about?", this is for you.
 
 ## Screenshot
 
@@ -13,9 +15,24 @@ If you've ever deployed Clanker tokens and wondered "wait, do any of these have 
 
 ## Why this exists
 
-`clanker.world` makes you click each token, one at a time, to see its claimable fees — painful if you've deployed more than a handful. This tool scans every Clanker v4 token where you are the `tokenAdmin` and shows all of the claimable balances in a single table.
+Most launcher UIs (`clanker.world`, `doppler.lol`, etc.) make you click into each token, one at a time, to see what you've earned. If you've deployed a handful of tokens across two protocols, you have to remember to check both — and the fees that sit unclaimed are easy to forget.
 
-You can also **claim directly from here**: any token with a non-zero balance gets an inline "claim →" button that fires a single `FeeLocker.claim()` transaction through your connected wallet. One click, one signature, one tx. No auto-batching, no surprises.
+This tool flips it: connect once, and the app fans out across every supported launcher in parallel, surfaces the rows where you have a non-zero claimable balance, ranks them by size, and lets you claim directly inline.
+
+**Read-only by default.** The only on-chain write is the explicit per-row "claim →" button — one wallet signature, one tx, one click. No auto-claim, no approvals, no surprises.
+
+**"Forgotten money" mode** is on by default: tokens with 0 claimable are hidden so the screen shows only what you can actually grab right now.
+
+### Plugins shipped today
+
+| Plugin | What it covers | Discovery signal | Claim |
+| --- | --- | --- | --- |
+| **Clanker** v4 | tokens where you're the `tokenAdmin` at deploy time | `TokenCreated.tokenAdmin` (indexed) | ✅ in-app via `FeeLocker.claim()` |
+| **Doppler** | tokens that have ever paid you fees on Doppler v1/v2 lockers | `Collect.to` (indexed) | ↗ defers to doppler.lol for now |
+
+### Adding a new launcher
+
+Drop a folder under [`src/lib/plugins/<name>/`](src/lib/plugins/) with `index.js`, `discovery.js`, `rewards.js`, `claim.js`, register it in [`src/lib/plugins/index.js`](src/lib/plugins/index.js). The rest of the app picks it up automatically. See [`src/lib/plugins/types.js`](src/lib/plugins/types.js) for the contract.
 
 ## Quick start
 

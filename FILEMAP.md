@@ -8,54 +8,78 @@ a file, update its row here in the same PR.
 
 ```
 .
-├── index.html                       Bootstrap shell (single root div)
-├── vite.config.js                   Build target es2022, sourcemap OFF in prod
+├── index.html                       Bootstrap shell + full SEO/OG meta
+├── vite.config.js                   VITE_BASE for Pages, sourcemap OFF in prod
 ├── package.json                     Public metadata (license, repo, keywords)
 ├── .env.example                     Every VITE_* var with what it does
 ├── .gitignore                       node_modules, dist, .env*, OS junk, OneDrive
-├── .nvmrc                           Node version pin (20)
-├── .editorconfig                    2-space, LF, UTF-8 across editors
+├── .nvmrc                           Node 20
+├── .editorconfig                    2-space LF UTF-8
 ├── LICENSE                          MIT
-├── README.md                        Public landing — quick start, env, privacy
+├── README.md                        Public landing
 ├── CONTRIBUTING.md                  How to file bugs / submit PRs
 ├── FILEMAP.md                       (this file)
+├── SUPPORTERS.md                    Auto-generated from on-chain donations
+├── .github/workflows/
+│   ├── pages.yml                    Build + deploy to GitHub Pages on push
+│   └── supporters.yml               Daily refresh of SUPPORTERS.md
 ├── docs/
-│   └── ARCHITECTURE.md              Deep-dive for extenders
+│   └── ARCHITECTURE.md              Deep-dive
+├── public/
+│   ├── robots.txt                   Crawler config
+│   └── sitemap.xml
+├── scripts/
+│   └── update-supporters.mjs        Walks Base for donations, regenerates SUPPORTERS.md
 └── src/
     ├── main.jsx                     Boots React + wagmi + RpcAggregator preflight
-    ├── App.jsx                      Shell — Header + (TokenList | EmptyState) + DebugPanel
-    ├── constants.js                 Chain addresses, deploy block, scan defaults
-    ├── styles.css                   All styles (no per-component CSS)
+    ├── App.jsx                      Shell — Header + (TokenList | EmptyState) + DonateBox + DebugPanel
+    ├── constants.js                 Shared chain defaults, donate address, GH URL
+    ├── styles.css                   All styles
     │
-    ├── lib/                         Pure library code — no React
+    ├── lib/                         Pure code — no React
     │   ├── debug.js                 Structured logger + ring buffer + window.__ccfLog
     │   ├── appkit.js                Reown AppKit + wagmi adapter setup
-    │   ├── scanCache.js             localStorage cache (per address, 30d max-age)
-    │   ├── rpc/                     RPC layer (aggregator + helpers)
-    │   │   ├── index.js             Singleton + getBlockNumber/getLogs/multicall sugar
-    │   │   ├── aggregator.js        RpcAggregator class — health, rotation, quorum
+    │   ├── scanCache.js             localStorage cache (key prefix v2: plugin × chain × addr, 30d max-age)
+    │   ├── rpc/                     RPC layer
+    │   │   ├── index.js             Singleton + getBlockNumber/getLogs (quorum)/multicall sugar
+    │   │   ├── aggregator.js        RpcAggregator class — health, rotation, quorum, pre-flight
     │   │   ├── endpoints.js         Default free Base RPC pool (11 endpoints)
     │   │   ├── classify.js          isContractRevert() + looksLikeCors()
     │   │   └── quorum.js            sameJson() comparator for k-of-N reads
-    │   └── clanker/                 Clanker-specific protocol code
-    │       ├── events.js            TokenCreated ABI + parseTokenCreated()
-    │       ├── sanitize.js          safeAddress, sanitizeText, HASH_RE_64
-    │       ├── images.js            safeImageUrl — https/ipfs only
-    │       ├── scan.js              findTokensByDeployer (chunked + cached scan)
-    │       ├── rewards.js           availableFeesBatch (multicall)
-    │       └── claim.js             buildClaimRequest (wagmi writeContract payload)
+    │   ├── clanker/                 Shared validators (will move to lib/util/ later)
+    │   │   ├── sanitize.js          safeAddress, sanitizeText, HASH_RE_64
+    │   │   └── images.js            safeImageUrl — https/ipfs only
+    │   └── plugins/                 Each launcher is one folder
+    │       ├── types.js             Contract every plugin honors (jsdoc only)
+    │       ├── index.js             PLUGINS array + pluginById / pluginsForChain
+    │       ├── clanker/
+    │       │   ├── index.js         Default export {id, name, chains, scanLaunches, fetchClaimables, buildClaimTx}
+    │       │   ├── constants.js     Factory + FeeLocker addrs per chain
+    │       │   ├── events.js        TokenCreated parsed ABI
+    │       │   ├── discovery.js     scanLaunches — chunked, quorum'd, cached
+    │       │   ├── rewards.js       fetchClaimables — multicall availableFees
+    │       │   └── claim.js         buildClaimTx — FeeLocker.claim(owner, token)
+    │       └── doppler/
+    │           ├── index.js         Same shape; supportsClaim = false (uses doppler.lol)
+    │           ├── constants.js     Airlock + StreamableFeesLocker v1 + v2
+    │           ├── events.js        Collect, Create, Migrate ABIs
+    │           ├── discovery.js     scanLaunches via indexed Collect.to + ERC-20 meta multicall
+    │           ├── rewards.js       Sum beneficiariesClaims across v1 + v2 lockers
+    │           └── claim.js         supportsClaim = false (deferred — links to doppler.lol)
     │
-    ├── hooks/                       Wagmi/state hooks around lib/
-    │   ├── useTokenScan.js          Scan effect + StrictMode epoch guard
-    │   ├── useFeeRewards.js         Multicall fee reads + per-row refresh()
-    │   └── useClaimFees.js          wagmi useWriteContract + useWaitForTransactionReceipt
+    ├── hooks/                       Wagmi/state wrappers around lib/
+    │   ├── useTokenScan.js          Iterates PLUGINS in parallel, shared concurrency budget
+    │   ├── useFeeRewards.js         Groups launches by pluginId, delegates to each plugin
+    │   ├── useClaimFees.js          Asks pluginById(launch.pluginId).buildClaimTx
+    │   └── useDonate.js             Native-ETH wagmi useSendTransaction → DONATE_ADDRESS
     │
-    └── components/                  Presentational React, no on-chain calls
-        ├── Header.jsx               Logo + connect button + debug toggle
+    └── components/                  Presentational, no on-chain calls
+        ├── Header.jsx               Logo + connect + GitHub + debug toggle
         ├── EmptyState.jsx           "Connect your wallet" screen
-        ├── TokenList.jsx            Container — orchestrates hooks, renders table
-        ├── TokenRow.jsx             One row (image + name + ClaimCell + links)
-        ├── ClaimCell.jsx            Claimable amount + inline Claim button + status
+        ├── TokenList.jsx            Container — plugin filter chips, hide-empty toggle, sort by claimable DESC
+        ├── TokenRow.jsx             One row — uses launch.links from the plugin
+        ├── ClaimCell.jsx            Amount + claim button (or external-link fallback if !supportsClaim)
+        ├── DonateBox.jsx            "Support dev" panel
         └── DebugPanel.jsx           Right-side panel — RPC table + log stream
 ```
 
@@ -67,36 +91,38 @@ a file, update its row here in the same PR.
 |---|---|---|
 | `debug.js` | `log`, `debugPanelEnabled` | everything |
 | `appkit.js` | `appKit`, `wagmiConfig`, `projectId` | `main.jsx`, `Header` |
-| `scanCache.js` | `readCache`, `writeCache`, `clearCache`, `CACHE_VERSION` | `clanker/scan.js` |
-| `rpc/index.js` | `rpc` (singleton), `getBlockNumber`, `getLogs`, `readContract`, `multicall` | `main.jsx`, `clanker/scan.js`, `clanker/rewards.js`, `DebugPanel` |
+| `scanCache.js` | `readCache`, `writeCache`, `clearCache`, `CACHE_VERSION` (=2) | plugins' `discovery.js` |
+| `rpc/index.js` | `rpc` (singleton), `getBlockNumber`, `getLogs`, `readContract`, `multicall` | `main.jsx`, plugins, `DebugPanel`, `useTokenScan` |
 | `rpc/aggregator.js` | `RpcAggregator` class | `rpc/index.js` |
 | `rpc/endpoints.js` | `DEFAULT_BASE_RPCS` | `rpc/index.js` |
 | `rpc/classify.js` | `isContractRevert`, `looksLikeCors` | `rpc/aggregator.js` |
 | `rpc/quorum.js` | `sameJson` | `rpc/aggregator.js` |
-| `clanker/events.js` | `TOKEN_CREATED_EVENT`, `parseTokenCreated` | `clanker/scan.js` |
-| `clanker/sanitize.js` | `safeAddress`, `sanitizeText`, `HASH_RE_64` | `clanker/events.js` |
+| `clanker/sanitize.js` | `safeAddress`, `sanitizeText`, `HASH_RE_64` | every plugin's `discovery.js` |
 | `clanker/images.js` | `safeImageUrl` | `components/TokenRow` |
-| `clanker/scan.js` | `findTokensByDeployer` | `hooks/useTokenScan` |
-| `clanker/rewards.js` | `availableFeesBatch`, `FEE_LOCKER_ABI` | `hooks/useFeeRewards` |
-| `clanker/claim.js` | `buildClaimRequest`, `FEE_LOCKER_CLAIM_ABI` | `hooks/useClaimFees` |
+| `plugins/types.js` | (jsdoc-only contract) | reference |
+| `plugins/index.js` | `PLUGINS`, `pluginById`, `pluginsForChain` | hooks + components |
+| `plugins/clanker/*` | default `{id, name, chains, scanLaunches, fetchClaimables, buildClaimTx}` | registry |
+| `plugins/doppler/*` | default `{id, name, chains, scanLaunches, fetchClaimables, buildClaimTx, supportsClaim:false}` | registry |
 
 ### `src/hooks/` — React state wrappers
 
 | Hook | Returns | Used by |
 |---|---|---|
-| `useTokenScan(address)` | `{ tokens, progress, scanning, error, stop }` | `TokenList` |
-| `useFeeRewards(address, tokenAddresses)` | `{ rewards, refresh(tokenAddr?) }` | `TokenList` |
-| `useClaimFees({ feeOwner, token, onClaimed })` | `{ claim(), reset(), status, txHash, error }` | `ClaimCell` |
+| `useTokenScan(address)` | `{ launches, perPluginProgress, scanning, error, stop }` | `TokenList` |
+| `useFeeRewards(address, launches)` | `{ rewards, refresh(tokenAddr?) }` | `TokenList` |
+| `useClaimFees({ launch, feeOwner, onClaimed })` | `{ claim(), reset(), status, txHash, error }` | `ClaimCell` |
+| `useDonate({ onSent })` | `{ donate(amountEth), reset(), status, txHash, error }` | `DonateBox` |
 
 ### `src/components/` — presentational
 
 | Component | Props | Notes |
 |---|---|---|
-| `Header` | `debugOpen`, `onToggleDebug` | Uses `useAccount`/`useDisconnect` directly |
-| `EmptyState` | — | Static "Connect your wallet" pitch |
-| `TokenList` | `address` | Container — owns scan + rewards hooks |
-| `TokenRow` | `token`, `reward`, `feeOwner`, `onClaimed` | Pure render |
-| `ClaimCell` | `feeOwner`, `token`, `reward`, `onClaimed` | Owns one `useClaimFees` |
+| `Header` | `debugOpen`, `onToggleDebug` | `useAccount`/`useDisconnect` |
+| `EmptyState` | — | "Connect your wallet" |
+| `TokenList` | `address` | Owns the two scan/rewards hooks; plugin filter chips; sort by claimable DESC; hide-empty toggle |
+| `TokenRow` | `launch`, `reward`, `feeOwner`, `onClaimed` | Pure; renders `launch.links` from the plugin |
+| `ClaimCell` | `launch`, `feeOwner`, `reward`, `onClaimed` | Owns one `useClaimFees`; falls back to plugin's protocol link if `supportsClaim === false` |
+| `DonateBox` | — | `useDonate`; hidden until connected |
 | `DebugPanel` | `onClose` | Subscribes to `log` + `rpc.snapshot` |
 
 ## How data flows
@@ -138,12 +164,13 @@ a file, update its row here in the same PR.
 
 | Add a… | Goes in… |
 |---|---|
+| **New launcher** (Zora, custom, etc.) | New folder `src/lib/plugins/<name>/` with `index.js` + `discovery.js` + `rewards.js` + `claim.js` + `constants.js` + `events.js`. Register in `plugins/index.js`. See `clanker/` as the reference impl. |
 | New RPC endpoint | `src/lib/rpc/endpoints.js` |
-| New on-chain read | `src/lib/clanker/<new>.js` + hook in `src/hooks/` |
-| New on-chain write | `src/lib/clanker/<new>.js` + hook in `src/hooks/` |
-| New chain support | New entry in `constants.js` + adapter in `rpc/endpoints.js` |
-| New piece of UI | `src/components/<Name>.jsx`, props only, no on-chain calls |
-| New env var | `.env.example` row + read in `constants.js` or relevant lib |
+| New on-chain read for an existing plugin | New file under that plugin's folder + use `rpc.withClient`/`multicall` |
+| New on-chain write for an existing plugin | Same as read; expose in plugin's `claim.js` and flip `supportsClaim` if it was off |
+| New chain for an existing plugin | Add chain id to the plugin's `constants.js` map AND to its `chains` array |
+| New piece of UI | `src/components/<Name>.jsx`, props only, no on-chain calls (use a hook) |
+| New env var | `.env.example` row + read in `constants.js` or the relevant lib |
 
 ## Anti-patterns
 
