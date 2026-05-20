@@ -22,9 +22,15 @@ import { log } from '../debug.js';
 import { isContractRevert, looksLikeCors } from './classify.js';
 import { sameJson } from './quorum.js';
 
-const CONSECUTIVE_FAIL_BAN = 3;
-const BAN_COOLDOWN_MS = 60_000;
-const COOL_BAN_HALFLIFE_MS = 30_000;
+// 3 consecutive failures used to trigger a ban — too strict for public RPCs
+// under sustained scan load. Mainnet.base.org would accumulate 129 ok / 21
+// fail and still get banned because the LAST 3 happened to be fails (rate
+// limit pulse, then 60s of empty pool). Bumping to 8 catches genuinely
+// dead endpoints while letting transient flakes recover via the success
+// counter without losing the endpoint mid-scan.
+const CONSECUTIVE_FAIL_BAN = 8;
+const BAN_COOLDOWN_MS = 30_000;       // halved — revival happens sooner if we do hit it
+const COOL_BAN_HALFLIFE_MS = 20_000;
 const REQUEST_TIMEOUT_MS = 15_000;
 
 function makeEndpoint(url, index, isPrivate, chain) {
