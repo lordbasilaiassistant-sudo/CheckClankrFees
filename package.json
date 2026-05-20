@@ -1,0 +1,51 @@
+{
+  "name": "check-clankr-fees",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Connect wallet → see every Clanker v4 token where you are the tokenAdmin and how much is claimable, all on one page.",
+  "license": "MIT",
+  "author": "lordbasilaiassistant-sudo",
+  "homepage": "https://github.com/lordbasilaiassistant-sudo/CheckClankrFees#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lordbasilaiassistant-sudo/CheckClankrFees.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lordbasilaiassistant-sudo/CheckClankrFees/issues"
+  },
+  "keywords": [
+    "clanker",
+    "base",
+    "uniswap-v4",
+    "fees",
+    "rewards",
+    "wallet",
+    "erc20",
+    "defi",
+    "creator-rewards"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@reown/appkit": "^1.7.0",
+    "@reown/appkit-adapter-wagmi": "^1.7.0",
+    "@tanstack/react-query": "^5.59.0",
+    "clanker-sdk": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "viem": "^2.21.0",
+    "wagmi": "^2.14.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "vite": "^5.4.10"
+  }
+}

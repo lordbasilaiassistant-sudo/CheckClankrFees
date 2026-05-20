@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+yarn-error.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# OneDrive sync artifacts (project may live under OneDrive)
+desktop.ini
+.~lock.*
+.tmp.driveupload
+.tmp.drivedownload
+~$*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.tsbuildinfo
+.eslintcache
