@@ -16,7 +16,7 @@ export default function ClaimCell({ launch, feeOwner, reward, onClaimed }) {
   const hasAmount = hasClaimableAmount(reward);
 
   return (
-    <div className="claim-cell">
+    <div className="claim-cell" data-positive={hasAmount ? 'true' : 'false'}>
       <span className="mono claim-amount">{display}</span>
       {hasAmount && canClaimInApp && (
         <ClaimButton
