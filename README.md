@@ -8,9 +8,8 @@ If you've ever deployed Clanker tokens and wondered "wait, do any of these have 
 
 ## Screenshot
 
-> Drop a screenshot at `docs/screenshot.png` and it'll show up here.
->
-> `![Check Clankr Fees screenshot](docs/screenshot.png)`
+<img width="941" height="1063" alt="image" src="https://github.com/user-attachments/assets/cad9fdcd-fe4b-4b58-80b8-764c37604236" />
+
 
 ## Why this exists
 
