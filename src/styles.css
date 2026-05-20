@@ -117,6 +117,41 @@ body {
 .claim-pill.confirming { background: rgba(124, 213, 221, 0.18); color: var(--accent); border-color: var(--accent); }
 .claim-pill.done       { background: rgba(126, 231, 126, 0.18); color: var(--ok); border-color: var(--ok); }
 .claim-pill.err        { background: rgba(255, 119, 119, 0.15); color: var(--err); border-color: var(--err); cursor: help; }
+.claim-pill:disabled   { opacity: 0.5; cursor: not-allowed; }
+
+.donate {
+  margin-top: 28px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(126, 231, 126, 0.06), rgba(124, 213, 221, 0.04));
+}
+.donate-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0; }
+.donate-label { font-weight: 600; font-size: 14px; }
+.donate-presets { display: flex; gap: 4px; }
+.donate-presets .preset {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--fg);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+}
+.donate-presets .preset:hover { background: var(--bg-3); }
+.donate-presets .preset.active { background: var(--accent); color: #042; border-color: transparent; }
+.donate-custom { display: flex; align-items: center; gap: 4px; }
+.donate-custom input {
+  width: 100px;
+  padding: 4px 8px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 13px;
+}
 .dim { color: var(--dim); }
 .small { font-size: 12px; }
 

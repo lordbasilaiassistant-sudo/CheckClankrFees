@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAccount, useDisconnect } from 'wagmi';
 import { appKit, projectId } from '../lib/appkit.js';
+import { GITHUB_REPO_URL } from '../constants.js';
 
 export default function Header({ debugOpen, onToggleDebug }) {
   const { address, isConnected } = useAccount();
@@ -28,6 +29,15 @@ export default function Header({ debugOpen, onToggleDebug }) {
             Connect Wallet
           </button>
         )}
+        <a
+          className="btn ghost"
+          href={GITHUB_REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Source on GitHub"
+        >
+          ★ GitHub
+        </a>
         <button
           className="btn ghost"
           onClick={onToggleDebug}

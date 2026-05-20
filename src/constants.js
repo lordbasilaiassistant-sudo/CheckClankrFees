@@ -24,3 +24,17 @@ export const DEFAULT_LOGS_QUORUM = 2;
 
 /** Base chain id, hardcoded — this app is Base-only by design. */
 export const BASE_CHAIN_ID = 8453;
+
+/** Where users land for source code, issues, discussions. */
+export const GITHUB_REPO_URL = 'https://github.com/lordbasilaiassistant-sudo/CheckClankrFees';
+
+/** Live deployed app URL — used in OG/canonical and the live banner. */
+export const LIVE_SITE_URL = 'https://lordbasilaiassistant-sudo.github.io/CheckClankrFees/';
+
+/** Donation target — the maintainer's public Base address. ETH only.
+ *  This is intentionally a fixed public address; users see it before they
+ *  send. The donate flow uses native ETH so no token approvals are needed. */
+export const DONATE_ADDRESS = '0x7a3E312Ec6e20a9F62fE2405938EB9060312E334';
+
+/** Suggested donation presets in ETH (rendered as buttons). */
+export const DONATE_PRESETS_ETH = ['0.001', '0.005', '0.01', '0.05'];

@@ -142,6 +142,16 @@ Particularly useful contributions:
 - Better debug UX (filtering, export).
 - Bug reports with the `?debug=1` log attached.
 
+<!-- SUPPORTERS:START -->
+
+## Supporters
+
+Auto-tracked from on-chain donations to the maintainer's Base address. Full list in [`SUPPORTERS.md`](SUPPORTERS.md).
+
+_No supporters yet — be the first via the "Support dev" panel on the live site._
+
+<!-- SUPPORTERS:END -->
+
 ## License
 
 MIT. See [`LICENSE`](LICENSE).

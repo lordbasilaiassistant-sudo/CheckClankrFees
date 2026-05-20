@@ -4,6 +4,7 @@ import Header from './components/Header.jsx';
 import EmptyState from './components/EmptyState.jsx';
 import TokenList from './components/TokenList.jsx';
 import DebugPanel from './components/DebugPanel.jsx';
+import DonateBox from './components/DonateBox.jsx';
 import { log, debugPanelEnabled } from './lib/debug.js';
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
       <Header debugOpen={debugOpen} onToggleDebug={() => setDebugOpen((v) => !v)} />
       <main className="main">
         {isConnected ? <TokenList address={address} /> : <EmptyState />}
+        <DonateBox />
       </main>
       {debugOpen && <DebugPanel onClose={() => setDebugOpen(false)} />}
     </div>
