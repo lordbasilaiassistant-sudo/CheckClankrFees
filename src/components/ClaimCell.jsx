@@ -12,12 +12,13 @@ export default function ClaimCell({ launch, feeOwner, reward, onClaimed }) {
   const plugin = pluginById(launch.pluginId);
   const canClaimInApp = plugin?.supportsClaim !== false;
   const { claim, status, txHash, error } = useClaimFees({ launch, feeOwner, onClaimed });
-  const display = formatAmount(reward);
+  const display = formatAmount(reward, launch);
   const hasAmount = hasClaimableAmount(reward);
 
   return (
     <div className="claim-cell" data-positive={hasAmount ? 'true' : 'false'}>
       <span className="mono claim-amount">{display}</span>
+      {hasAmount && launch.symbol && <span className="claim-unit">{launch.symbol}</span>}
       {hasAmount && canClaimInApp && (
         <ClaimButton
           status={status}
@@ -57,15 +58,19 @@ function hasClaimableAmount(r) {
   try { return BigInt(r.amount || 0) > 0n; } catch { return false; }
 }
 
-function formatAmount(r) {
+function formatAmount(r, launch) {
   if (r === undefined) return <span className="dim">…</span>;
   if (r === null) return <span className="dim">n/a</span>;
   try {
     const wei = BigInt(r.amount || 0);
     if (wei === 0n) return <span className="dim">0</span>;
+    // All supported plugins emit 18-decimal tokens (Clanker enforces 18;
+    // Doppler and custom-erc20 launches here are 18 by convention). If a
+    // non-18 token ever sneaks in, the raw value is still in the tooltip.
     const eth = formatEther(wei);
     const trimmed = eth.replace(/\.?0+$/, '') || '0';
-    return <span title={`${wei.toString()} (raw)`}>{trimmed}</span>;
+    const unit = launch?.symbol ? ` ${launch.symbol}` : '';
+    return <span title={`${wei.toString()} (raw)${unit}`}>{trimmed}</span>;
   } catch {
     return '—';
   }

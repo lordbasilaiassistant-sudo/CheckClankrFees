@@ -3,7 +3,7 @@
 //
 // Batch all N tokens into one Multicall3 round-trip.
 
-import { parseAbi, getAddress } from 'viem';
+import { parseAbi, getAddress, erc20Abi } from 'viem';
 import { log } from '../../debug.js';
 import { rpc, readContract } from '../../rpc/index.js';
 import { CLANKER_V4 } from './constants.js';
@@ -11,6 +11,10 @@ import { CLANKER_V4 } from './constants.js';
 export const FEE_LOCKER_ABI = parseAbi([
   'function availableFees(address feeOwner, address token) view returns (uint256)',
 ]);
+
+// Base WETH — useful so the UI can label "WETH" as ETH when it's the
+// canonical wrapped-native paired currency.
+const BASE_WETH = '0x4200000000000000000000000000000000000006';
 
 export async function fetchClaimables(launches, { feeOwner, chainId = 8453 }) {
   const cfg = CLANKER_V4[chainId];
@@ -62,5 +66,86 @@ async function fallback(launches, owner, locker) {
       out[tok] = { amount: 0n, currency: 'PAIRED', error: e?.shortMessage || 'reverted' };
     }
   }
+  return out;
+}
+
+/** Paired-currency claimable lookup. The fee locker is keyed by
+ *  (feeOwner, currency), so each pool accrues fees on BOTH sides. Querying
+ *  `availableFees(owner, launch.token)` only surfaces the launched-token
+ *  side — the WETH (or stablecoin) side is invisible without a separate
+ *  query against that paired currency.
+ *
+ *  This function:
+ *    1. Collects unique paired tokens across all launches.
+ *    2. Drops any address already in the launches set (the per-launch
+ *       query already returns its aggregate balance).
+ *    3. Batches availableFees + ERC20 symbol/decimals into one multicall.
+ *    4. Returns one entry per paired currency with a non-zero balance.
+ *
+ *  Claiming a paired entry calls `claim(owner, pairedToken)` on the same
+ *  locker — buildClaimTx works without modification.
+ */
+export async function fetchPairedClaimables(launches, { feeOwner, chainId = 8453 }) {
+  const cfg = CLANKER_V4[chainId];
+  if (!cfg || !launches.length) return [];
+  const owner = getAddress(feeOwner);
+
+  // Dedupe paired tokens and exclude any address already present as a
+  // launch.token (per-launch query covers those).
+  const launchTokens = new Set(launches.map((l) => l.token.toLowerCase()));
+  const pairedMap = new Map(); // checksummed addr -> sourceLaunchCount
+  for (const l of launches) {
+    const p = l.meta?.pairedToken;
+    if (!p) continue;
+    const cs = getAddress(p);
+    if (launchTokens.has(cs.toLowerCase())) continue;
+    pairedMap.set(cs, (pairedMap.get(cs) || 0) + 1);
+  }
+  if (pairedMap.size === 0) return [];
+
+  const pairedArr = [...pairedMap.keys()];
+  const calls = [];
+  for (const t of pairedArr) {
+    calls.push({ address: cfg.feeLocker, abi: FEE_LOCKER_ABI, functionName: 'availableFees', args: [owner, t] });
+    calls.push({ address: t, abi: erc20Abi, functionName: 'symbol' });
+    calls.push({ address: t, abi: erc20Abi, functionName: 'decimals' });
+  }
+
+  const endDone = log.time('clanker.rewards', `paired multicall × ${calls.length} (${pairedArr.length} currencies)`);
+  let results;
+  try {
+    results = await rpc.withClient('clanker.multicall.pairedAvailableFees', (c) =>
+      c.multicall({ contracts: calls, allowFailure: true, batchSize: 100 })
+    );
+  } catch (e) {
+    endDone({ error: e?.shortMessage || e?.message }, 'warn');
+    return [];
+  }
+
+  const out = [];
+  for (let i = 0; i < pairedArr.length; i++) {
+    const base = i * 3;
+    const amountR = results[base];
+    const symbolR = results[base + 1];
+    const decimalsR = results[base + 2];
+    const amount = amountR?.status === 'success' ? BigInt(amountR.result || 0) : 0n;
+    if (amount === 0n) continue;
+    const rawSymbol = symbolR?.status === 'success' ? String(symbolR.result) : '?';
+    // Surface WETH as "ETH" to match user mental model; tooltip preserves
+    // the underlying token address so it's never ambiguous.
+    const isWeth = pairedArr[i].toLowerCase() === BASE_WETH.toLowerCase();
+    const symbol = isWeth ? 'ETH' : rawSymbol;
+    const decimals = decimalsR?.status === 'success' ? Number(decimalsR.result) : 18;
+    out.push({
+      token: pairedArr[i],
+      symbol,
+      rawSymbol,
+      decimals,
+      amount,
+      sourceLaunchCount: pairedMap.get(pairedArr[i]) || 1,
+      isWeth,
+    });
+  }
+  endDone({ withBalance: out.length });
   return out;
 }

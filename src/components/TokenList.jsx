@@ -13,21 +13,59 @@ import { PLUGINS } from '../lib/plugins/index.js';
 export default function TokenList({ address }) {
   const { launches, perPluginStatus, scanning, error, stop, rescan } = useTokenScan(address);
   const launchKeys = useMemo(() => launches, [launches]);
-  const { rewards, refresh } = useFeeRewards(address, launchKeys);
+  const { rewards, pairedRewards, refresh } = useFeeRewards(address, launchKeys);
   const [pluginFilter, setPluginFilter] = useState('all');
   const [hideZero, setHideZero] = useState(true);
 
+  // Each paired-currency entry is rendered as a synthetic launch row so it
+  // flows through the existing TokenRow + ClaimCell + claim button. Naming
+  // mirrors the per-protocol pill style — "ETH (paired)" reads naturally
+  // in the list and the claim flow uses the same `claim(owner, token)`
+  // path the locker already exposes.
+  const pairedLaunches = useMemo(() => pairedRewards.map((p) => ({
+    pluginId: p.pluginId,
+    token: p.token,
+    name: `${p.symbol} (paired)`,
+    symbol: p.symbol,
+    image: '',
+    deployedAt: { blockNumber: 0n, txHash: null },
+    links: [
+      { label: 'scan', url: `https://basescan.org/address/${p.token}`, kind: 'explorer' },
+    ],
+    meta: {
+      isPaired: true,
+      sourceLaunchCount: p.sourceLaunchCount,
+      rawSymbol: p.rawSymbol,
+    },
+  })), [pairedRewards]);
+
+  // Paired rewards merged into the rewards map so ClaimCell renders them
+  // the same way it renders normal launches.
+  const mergedRewards = useMemo(() => {
+    const out = { ...rewards };
+    for (const p of pairedRewards) {
+      out[p.token] = { amount: p.amount, currency: 'PAIRED' };
+    }
+    return out;
+  }, [rewards, pairedRewards]);
+
   const visible = useMemo(() => {
-    let v = launches;
+    // Merge paired rows into the list. They get pinned to the top because
+    // they're typically the highest-value entry (ETH/WETH or stables).
+    let v = [...pairedLaunches, ...launches];
     if (pluginFilter !== 'all') v = v.filter((l) => l.pluginId === pluginFilter);
     if (hideZero) v = v.filter((l) => {
-      const r = rewards[l.token];
+      const r = mergedRewards[l.token];
       if (r === undefined) return true;
       try { return BigInt(r.amount || 0) > 0n; } catch { return true; }
     });
     return v.slice().sort((a, b) => {
-      const ra = rewards[a.token]?.amount ?? 0n;
-      const rb = rewards[b.token]?.amount ?? 0n;
+      // Paired rows always sort to the top within their plugin group.
+      const aPaired = !!a.meta?.isPaired;
+      const bPaired = !!b.meta?.isPaired;
+      if (aPaired !== bPaired) return aPaired ? -1 : 1;
+      const ra = mergedRewards[a.token]?.amount ?? 0n;
+      const rb = mergedRewards[b.token]?.amount ?? 0n;
       try {
         const A = BigInt(ra || 0), B = BigInt(rb || 0);
         if (A !== B) return B > A ? 1 : -1;
@@ -35,7 +73,7 @@ export default function TokenList({ address }) {
       if (a.pluginId !== b.pluginId) return a.pluginId.localeCompare(b.pluginId);
       return (a.symbol || '').localeCompare(b.symbol || '');
     });
-  }, [launches, rewards, pluginFilter, hideZero]);
+  }, [launches, pairedLaunches, mergedRewards, pluginFilter, hideZero]);
 
   const counts = useMemo(() => {
     const out = { all: launches.length };
@@ -43,11 +81,13 @@ export default function TokenList({ address }) {
     return out;
   }, [launches]);
 
-  // Total claimable, separated by "the rewards lookup has finished and
-  // returned a real number" vs "still loading". The hero shows the
-  // confirmed total and a "+ X loading" suffix when reads are in flight.
-  const { totalConfirmed, totalPendingReads, tokensWithClaim, allReadsLanded } = useMemo(() => {
-    let sum = 0n;
+  // Claimable breakdown. Each launch's `availableFees` is denominated in
+  // that launch's OWN token (THRYXUSD's fees are in THRYXUSD, PEPE's in
+  // PEPE, etc.) — they aren't comparable, so the hero can't sum them.
+  // We group by symbol and include paired-currency aggregates so e.g.
+  // ETH from multiple WETH-paired pools shows as one hero row.
+  const { byCurrency, totalPendingReads, tokensWithClaim, allReadsLanded } = useMemo(() => {
+    const groups = new Map(); // symbol -> { amount, count }
     let pending = 0;
     let withClaim = 0;
     for (const l of launches) {
@@ -55,11 +95,28 @@ export default function TokenList({ address }) {
       if (r === undefined) { pending++; continue; }
       try {
         const amt = BigInt(r.amount || 0);
-        if (amt > 0n) { sum += amt; withClaim++; }
+        if (amt > 0n) {
+          withClaim++;
+          const key = (l.symbol || '').trim() || shortAddr(l.token);
+          const g = groups.get(key) || { amount: 0n, count: 0 };
+          g.amount += amt;
+          g.count += 1;
+          groups.set(key, g);
+        }
       } catch {}
     }
-    return { totalConfirmed: sum, totalPendingReads: pending, tokensWithClaim: withClaim, allReadsLanded: pending === 0 };
-  }, [launches, rewards]);
+    for (const p of pairedRewards) {
+      if (p.amount > 0n) {
+        withClaim++;
+        const key = p.symbol;
+        const g = groups.get(key) || { amount: 0n, count: 0 };
+        g.amount += p.amount;
+        g.count += 1;
+        groups.set(key, g);
+      }
+    }
+    return { byCurrency: groups, totalPendingReads: pending, tokensWithClaim: withClaim, allReadsLanded: pending === 0 };
+  }, [launches, rewards, pairedRewards]);
 
   const handleClaimed = useCallback((token) => { refresh(token); }, [refresh]);
 
@@ -70,7 +127,7 @@ export default function TokenList({ address }) {
   return (
     <div className="list">
       <Hero
-        total={totalConfirmed}
+        byCurrency={byCurrency}
         pendingReads={totalPendingReads}
         tokensWithClaim={tokensWithClaim}
         totalLaunches={launches.length}
@@ -157,9 +214,9 @@ export default function TokenList({ address }) {
             <tbody>
               {visible.map((l) => (
                 <TokenRow
-                  key={`${l.pluginId}:${l.token}`}
+                  key={`${l.pluginId}:${l.token}${l.meta?.isPaired ? ':paired' : ''}`}
                   launch={l}
-                  reward={rewards[l.token]}
+                  reward={mergedRewards[l.token]}
                   feeOwner={address}
                   onClaimed={handleClaimed}
                 />
@@ -172,9 +229,17 @@ export default function TokenList({ address }) {
   );
 }
 
-function Hero({ total, pendingReads, tokensWithClaim, totalLaunches, scanning, allReadsLanded }) {
-  const eth = formatTrimmed(total);
-  const hasMoney = total > 0n;
+function Hero({ byCurrency, pendingReads, tokensWithClaim, totalLaunches, scanning, allReadsLanded }) {
+  // Groups are per-symbol — sort by token count desc so the most-deployed
+  // currency leads. We don't compare amounts across symbols; they're in
+  // different units (1 ETH ≠ 1 THRYXUSD ≠ 1 PEPE).
+  const groups = Array.from(byCurrency.entries())
+    .map(([symbol, g]) => ({ symbol, amount: g.amount, count: g.count }))
+    .sort((a, b) => b.count - a.count || a.symbol.localeCompare(b.symbol));
+  const hasMoney = groups.length > 0;
+  const TOP = 3;
+  const top = groups.slice(0, TOP);
+  const moreCount = Math.max(0, groups.length - TOP);
 
   let subtitle;
   if (scanning && totalLaunches === 0) {
@@ -184,7 +249,7 @@ function Hero({ total, pendingReads, tokensWithClaim, totalLaunches, scanning, a
   } else if (!allReadsLanded) {
     subtitle = `Reading claimable balances for ${totalLaunches} launch${totalLaunches === 1 ? '' : 'es'}…`;
   } else if (hasMoney) {
-    subtitle = `Across ${tokensWithClaim} token${tokensWithClaim === 1 ? '' : 's'} out of ${totalLaunches} scanned.`;
+    subtitle = `Across ${tokensWithClaim} token${tokensWithClaim === 1 ? '' : 's'} out of ${totalLaunches} scanned. Each amount is denominated in its own token.`;
   } else if (totalLaunches > 0) {
     subtitle = `${totalLaunches} launch${totalLaunches === 1 ? '' : 'es'} scanned — nothing claimable right now.`;
   } else {
@@ -195,10 +260,28 @@ function Hero({ total, pendingReads, tokensWithClaim, totalLaunches, scanning, a
     <div className={'hero' + (hasMoney ? ' has-money' : '') + (scanning ? ' is-scanning' : '')}>
       <div className="hero-amount">
         <span className="hero-label">You have</span>
-        <span className="hero-eth">
-          <span className="hero-eth-num">{hasMoney ? eth : '—'}</span>
-          <span className="hero-eth-unit">{hasMoney ? ' ETH' : ''}</span>
-        </span>
+        {hasMoney ? (
+          top.length === 1 ? (
+            <span className="hero-eth">
+              <span className="hero-eth-num" title={`${top[0].amount.toString()} (raw)`}>{formatTrimmed(top[0].amount)}</span>
+              <span className="hero-eth-unit">{top[0].symbol}</span>
+            </span>
+          ) : (
+            <span className="hero-eth hero-multi">
+              {top.map((g) => (
+                <span key={g.symbol} className="hero-multi-row">
+                  <span className="hero-eth-num multi" title={`${g.amount.toString()} (raw)`}>{formatTrimmed(g.amount)}</span>
+                  <span className="hero-eth-unit">{g.symbol}</span>
+                </span>
+              ))}
+              {moreCount > 0 && <span className="hero-multi-more dim">+ {moreCount} more below</span>}
+            </span>
+          )
+        ) : (
+          <span className="hero-eth">
+            <span className="hero-eth-num">—</span>
+          </span>
+        )}
         <span className="hero-label">waiting</span>
       </div>
       <div className="hero-sub">{subtitle}</div>
