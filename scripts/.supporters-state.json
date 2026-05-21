@@ -1,5 +1,20 @@
 {
   "firstScanBlock": "46255910",
-  "lastScannedBlock": "46255976",
-  "donations": []
+  "lastScannedBlock": "46281361",
+  "donations": [
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x2386f26fc10000",
+      "blockNumber": 46261816,
+      "hash": "0x94e35941c9145de75b9a34019f5a63d56cf5b8f207a9a34c86689ae39ff044ec",
+      "ts": 1779312979000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x38d7ea4c68000",
+      "blockNumber": 46271615,
+      "hash": "0x14cdf0a346df4d55c6291d4ebfd1521f60c904e6d08ec33b60ecc9c7b24b2d1f",
+      "ts": 1779332577000
+    }
+  ]
 }
