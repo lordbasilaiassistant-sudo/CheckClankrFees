@@ -9,8 +9,8 @@ Each launcher is a small **plugin** in `src/lib/plugins/`. Today the registry sh
 If you've ever wondered "wait, do any of these things I deployed have fees I forgot about?", this is for you.
 
 ## Screenshot
+<img width="922" height="1048" alt="image" src="https://github.com/user-attachments/assets/22b36989-c699-4fe5-a659-b6e0323f05f0" />
 
-<img width="941" height="1063" alt="image" src="https://github.com/user-attachments/assets/cad9fdcd-fe4b-4b58-80b8-764c37604236" />
 
 
 ## Why this exists
