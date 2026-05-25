@@ -3,11 +3,11 @@
 Everyone who has sent Base ETH to support the project, ranked by total.
 Updated daily by `.github/workflows/supporters.yml`.
 
-**Total received:** 0.000001 ETH across 4 supporters.
+**Total received:** 0.000002 ETH across 4 supporters.
 
 | # | Address | Total (ETH) | Donations | First | Last |
 | --- | --- | ---: | ---: | --- | --- |
-| 1 | [0x9a5f…736a](https://basescan.org/address/0x9a5fa2da2fdb719dd45ff9c95f1a40b023ea736a) | 0.000001 | 1 | 2026-05-23 | 2026-05-23 |
+| 1 | [0x9a5f…736a](https://basescan.org/address/0x9a5fa2da2fdb719dd45ff9c95f1a40b023ea736a) | 0.000002 | 2 | 2026-05-23 | 2026-05-24 |
 | 2 | [0x2f70…8cce](https://basescan.org/address/0x2f70ab1143abb70d2ca755cee6539ed401988cce) | 0 | 1 | 2026-05-23 | 2026-05-23 |
 | 3 | [0x2f7d…7cce](https://basescan.org/address/0x2f7d4069b880792f2adb45f9d70cbdb1ab8f7cce) | 0 | 1 | 2026-05-23 | 2026-05-23 |
 | 4 | [0x2f76…9cee](https://basescan.org/address/0x2f769b4a7868fee9a44f9de6db55b365d9319cee) | 0 | 1 | 2026-05-24 | 2026-05-24 |

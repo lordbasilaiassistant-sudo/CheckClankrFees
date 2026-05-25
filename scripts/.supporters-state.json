@@ -1,6 +1,6 @@
 {
   "firstScanBlock": "46255910",
-  "lastScannedBlock": "46410270",
+  "lastScannedBlock": "46454616",
   "donations": [
     {
       "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
@@ -50,6 +50,55 @@
       "blockNumber": 46399648,
       "hash": "0x5761fd88c7ffc4ed1b04caac31de7f92b05973222754b05107b5a9bd7ac0047a",
       "ts": 1779588643000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x66a041126730",
+      "blockNumber": 46422247,
+      "hash": "0x76a37441a6ac6b88b660e508a9b8160829ed4aedcb30db05cce73eebedcff3b9",
+      "ts": 1779633841000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x3e871b540c000",
+      "blockNumber": 46422413,
+      "hash": "0x48caf750e126bbb4e3cb4c83d0a41c9e381410e4d575aa42c52418441b7a5731",
+      "ts": 1779634173000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x445b0fee7b00",
+      "blockNumber": 46428279,
+      "hash": "0x368c4c98a9231dd0a413901df1ae7a73e69566acfcd7e99395469a330a1cc0e9",
+      "ts": 1779645905000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0xaca045035432",
+      "blockNumber": 46428307,
+      "hash": "0x78d4fb280568c7c82b9d2fa092a737d9aaa2ba1916e447bb53c5980cf1e4508c",
+      "ts": 1779645961000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x3d04dd19bfa6",
+      "blockNumber": 46432934,
+      "hash": "0x44aa7061d635b3306e7f2163bd2273db47c2034feb6f03af59d07eff3a43045f",
+      "ts": 1779655215000
+    },
+    {
+      "from": "0x9a5fa2da2fdb719dd45ff9c95f1a40b023ea736a",
+      "value": "0xe8d4a51000",
+      "blockNumber": 46435274,
+      "hash": "0x084139fb90e50941d070e936d88cf1a3390f2eccc78e7ab40954e9d5411fddd1",
+      "ts": 1779659895000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x9ddcfbda3e700",
+      "blockNumber": 46443594,
+      "hash": "0x6bc3930b7c22753aaa3a7e8d10337800964ca667e0bcf410bdb1328b647ce0a3",
+      "ts": 1779676535000
     }
   ]
 }
