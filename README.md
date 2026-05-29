@@ -166,10 +166,11 @@ Auto-tracked from on-chain donations to the maintainer's Base address. Full list
 
 | # | Address | Total (ETH) | Donations |
 | --- | --- | ---: | ---: |
-| 1 | [`0x9a5f…736a`](https://basescan.org/address/0x9a5fa2da2fdb719dd45ff9c95f1a40b023ea736a) | 0.000002 | 2 |
-| 2 | [`0x2f70…8cce`](https://basescan.org/address/0x2f70ab1143abb70d2ca755cee6539ed401988cce) | 0 | 1 |
-| 3 | [`0x2f7d…7cce`](https://basescan.org/address/0x2f7d4069b880792f2adb45f9d70cbdb1ab8f7cce) | 0 | 1 |
-| 4 | [`0x2f76…9cee`](https://basescan.org/address/0x2f769b4a7868fee9a44f9de6db55b365d9319cee) | 0 | 1 |
+| 1 | [`0x6892…3524`](https://basescan.org/address/0x6892425ee9c3a863f94ca5a0aa54e64ea69b3524) | 0.0511 | 3 |
+| 2 | [`0x9a5f…736a`](https://basescan.org/address/0x9a5fa2da2fdb719dd45ff9c95f1a40b023ea736a) | 0.000002 | 2 |
+| 3 | [`0x2f70…8cce`](https://basescan.org/address/0x2f70ab1143abb70d2ca755cee6539ed401988cce) | 0 | 1 |
+| 4 | [`0x2f7d…7cce`](https://basescan.org/address/0x2f7d4069b880792f2adb45f9d70cbdb1ab8f7cce) | 0 | 1 |
+| 5 | [`0x2f76…9cee`](https://basescan.org/address/0x2f769b4a7868fee9a44f9de6db55b365d9319cee) | 0 | 1 |
 
 <!-- SUPPORTERS:END -->
 
