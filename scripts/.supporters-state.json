@@ -1,6 +1,6 @@
 {
   "firstScanBlock": "46255910",
-  "lastScannedBlock": "46669499",
+  "lastScannedBlock": "46843810",
   "donations": [
     {
       "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
@@ -260,6 +260,34 @@
       "blockNumber": 46647416,
       "hash": "0xdafd1f1f88b4c3c70f3a9e7db96de4ef10a483869582470fdee9b2b486c20316",
       "ts": 1780084179000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x2386f26fc10000",
+      "blockNumber": 46678833,
+      "hash": "0x8f526b4fcf41d3a43c3d00d0e2a62369cb5f18adf19f0ed3725dbf30d580d2f4",
+      "ts": 1780147013000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0xabee2e02c6a00",
+      "blockNumber": 46743933,
+      "hash": "0x483ec6e9d31aa6da8c97ede855be6c77cb4cc9502f0e2212ab9d1016593a054b",
+      "ts": 1780277213000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x2386f26fc10000",
+      "blockNumber": 46775985,
+      "hash": "0x76722db3969c1a91826fc001cc22ece72806ce64b505b6378ce03cd1074c52f2",
+      "ts": 1780341317000
+    },
+    {
+      "from": "0x7a3e312ec6e20a9f62fe2405938eb9060312e334",
+      "value": "0x6a94d74f430000",
+      "blockNumber": 46778418,
+      "hash": "0xca3166cc710f66ed6111e1184781545b8b6f1e6d4748c3934ce5967fb388ad78",
+      "ts": 1780346183000
     }
   ]
 }
